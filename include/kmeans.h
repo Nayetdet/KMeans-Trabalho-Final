@@ -7,10 +7,11 @@
 
 typedef struct {
     unsigned int k;
+    unsigned int maxIterations;
     unsigned char *centroids;
     unsigned char **clusters;
 } KMeans;
 
-bool applyKMeans(PGM *pgm, unsigned int k);
+bool applyKMeans(PGM *pgm, unsigned int k, unsigned int maxIterations);
 
 #endif
