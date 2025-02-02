@@ -1,23 +1,20 @@
 #ifndef KMEANS_H
 #define KMEANS_H
 
-#include <stdbool.h>
-
 typedef struct {
-    unsigned width;
-    unsigned height;
+    unsigned long long size;
     unsigned char maxValue;
-    unsigned char **data;
+    unsigned char *data;
 } KMeansData;
 
 typedef struct {
-    unsigned k;
+    unsigned char k;
     unsigned maxIterations;
     unsigned char *centroids;
-    unsigned char **clusters;
-    unsigned *clusterSizes;
+    unsigned char *clusters;
 } KMeans;
 
-bool applyKMeans(KMeansData *kd, unsigned k, unsigned maxIterations);
+KMeans *getKMeans(KMeansData *kd, unsigned char k, unsigned maxIterations);
+void freeKMeans(KMeans *km);
 
 #endif

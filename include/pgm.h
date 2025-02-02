@@ -1,11 +1,13 @@
 #ifndef PGM_H
 #define PGM_H
 
+#include <stdbool.h>
+
 typedef struct {
-    unsigned width;
-    unsigned height;
+    unsigned int width;
+    unsigned int height;
     unsigned char maxValue;
-    unsigned char **data;
+    unsigned char *data;
 } PGM;
 
 PGM *readPGM(const char *const path);
