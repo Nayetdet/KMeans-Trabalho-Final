@@ -3,15 +3,21 @@
 
 #include <stdbool.h>
 
-#include "pgm.h"
+typedef struct {
+    unsigned width;
+    unsigned height;
+    unsigned char maxValue;
+    unsigned char **data;
+} KMeansData;
 
 typedef struct {
-    unsigned int k;
-    unsigned int maxIterations;
+    unsigned k;
+    unsigned maxIterations;
     unsigned char *centroids;
     unsigned char **clusters;
+    unsigned *clusterSizes;
 } KMeans;
 
-bool applyKMeans(PGM *pgm, unsigned int k, unsigned int maxIterations);
+bool applyKMeans(KMeansData *kd, unsigned k, unsigned maxIterations);
 
 #endif

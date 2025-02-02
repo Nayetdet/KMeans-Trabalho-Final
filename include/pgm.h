@@ -2,8 +2,8 @@
 #define PGM_H
 
 typedef struct {
-    unsigned int width;
-    unsigned int height;
+    unsigned width;
+    unsigned height;
     unsigned char maxValue;
     unsigned char **data;
 } PGM;

@@ -34,7 +34,7 @@ PGM *readPGM(const char *const path) {
         return cleanupOnError(fp, pgm);
     }
 
-    for (unsigned int i = 0; i < pgm->height; i++) {
+    for (unsigned i = 0; i < pgm->height; i++) {
         pgm->data[i] = (unsigned char *)malloc(pgm->width * sizeof(unsigned char));
         if (!pgm->data[i]) {
             return cleanupOnError(fp, pgm);
@@ -59,8 +59,8 @@ bool writePGM(const PGM *const pgm, const char *const path) {
     fprintf(fp, "%u %u\n", pgm->width, pgm->height);
     fprintf(fp, "%hhu\n", pgm->maxValue);
     
-    for (unsigned int i = 0; i < pgm->height; i++) {
-        for (unsigned int j = 0; j < pgm->width; j++) {
+    for (unsigned i = 0; i < pgm->height; i++) {
+        for (unsigned j = 0; j < pgm->width; j++) {
             if (fwrite(&pgm->data[i][j], sizeof(unsigned char), 1, fp) != 1) {
                 fclose(fp);
                 return false;
@@ -78,7 +78,7 @@ void freePGM(PGM *pgm) {
     }
     
     if (pgm->data) {
-        for (unsigned int i = 0; i < pgm->height; i++) {
+        for (unsigned i = 0; i < pgm->height; i++) {
             free(pgm->data[i]);
         }
 
