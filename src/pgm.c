@@ -5,6 +5,8 @@
 
 #include "pgm.h"
 
+static void *cleanupOnError(FILE *fp, PGM *pgm);
+
 PGM *readPGM(const char *const path) {
     FILE *fp = fopen(path, "rb");
     if (!fp) {
@@ -12,28 +14,29 @@ PGM *readPGM(const char *const path) {
     }
 
     char format[3];
-    if (fscanf(fp, "%2c\n", format) != 1 || strcmp(format, "P5")) {
-        fclose(fp);
-        return NULL;
+    PGM *pgm = (PGM *)malloc(sizeof(PGM));
+    if (!pgm || fscanf(fp, "%2c\n", format) != 1 || strcmp(format, "P5")) {
+        return cleanupOnError(fp, pgm);
     }
 
     char ch;
-    while ((ch = fgetc(fp)) == '#')
+    while ((ch = fgetc(fp)) == '#') {
         while ((ch = fgetc(fp)) != '\n' && ch != EOF);
+    }
+    
     ungetc(ch, fp);
-
-    PGM *pgm = (PGM *)malloc(sizeof(PGM));
-    if (!pgm || fscanf(fp, "%u %u %hhu", &pgm->width, &pgm->height, &pgm->maxValue) != 3 || !pgm->width || !pgm->height) {
-        free(pgm);
-        fclose(fp);
-        return NULL;
+    if (fscanf(fp, "%u %u %hhu", &pgm->width, &pgm->height, &pgm->maxValue) != 3) {
+        return cleanupOnError(fp, pgm);
     }
 
-    pgm->data = (unsigned char *)malloc(pgm->width * pgm->height * sizeof(unsigned char));
-    if (!pgm->data || fread(pgm->data, sizeof(unsigned char), pgm->width * pgm->height, fp) != pgm->width * pgm->height) {
-        free(pgm);
-        fclose(fp);
-        return NULL;
+    fgetc(fp);
+    unsigned long long size = pgm->width * pgm->height;
+    if (!size || !(pgm->data = (unsigned char *)malloc(size * sizeof(unsigned char)))) {
+        return cleanupOnError(fp, pgm);
+    }
+
+    if (fread(pgm->data, sizeof(unsigned char), size, fp) != size) {
+        return cleanupOnError(fp, pgm);
     }
 
     fclose(fp);
@@ -54,11 +57,12 @@ bool writePGM(const PGM *const pgm, const char *const path) {
     fprintf(fp, "%u %u\n", pgm->width, pgm->height);
     fprintf(fp, "%hhu\n", pgm->maxValue);
 
-    if (fwrite(pgm->data, sizeof(unsigned char), pgm->width * pgm->height, fp) != pgm->width * pgm->height) {
+    unsigned long long size = pgm->width * pgm->height;
+    if (!size || fwrite(pgm->data, sizeof(unsigned char), size, fp) != size) {
         fclose(fp);
         return false;
     }
-
+    
     fclose(fp);
     return true;
 }
@@ -68,6 +72,19 @@ void freePGM(PGM *pgm) {
         return;
     }
 
-    free(pgm->data);
+    if (pgm->data) {
+        free(pgm->data);
+        pgm->data = NULL;
+    }
+
     free(pgm);
+}
+
+static void *cleanupOnError(FILE *fp, PGM *pgm) {
+    if (fp) {
+        fclose(fp);
+    }
+
+    freePGM(pgm);
+    return NULL;
 }

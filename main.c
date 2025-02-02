@@ -5,32 +5,43 @@
 #include "kmeans.h"
 #include "pgm.h"
 
-int main(void) {
+int main(int argc, char **argv) {
     srand(time(NULL));
-    PGM *pgm = readPGM("assets/smurf.pgm");
-    if (!pgm) {
-        fprintf(stderr, "Erro: Falha ao ler a imagem\n");
+    if (argc != 5) {
+        fprintf(stderr, "Use: <k:unsigned> <maxIterations:unsigned> <imgInPath:string> <imgOutPath:string>\n");
         exit(1);
     }
 
-    KMeansData km;
-    km.size = pgm->width * pgm->height;
-    km.maxValue = pgm->maxValue;
-    km.data = pgm->data;
+    unsigned k = atoi(argv[1]);
+    unsigned maxIterations = atoi(argv[2]);
+    char *imgInPath = argv[3];
+    char *imgOutPath = argv[4];
 
-    if (!getKMeans(&km, 3, 100)) {
-        fprintf(stderr, "Erro: Falha ao executar o algoritmo k-means\n");
+    PGM *pgm = readPGM(imgInPath);
+    if (!pgm) {
+        fprintf(stderr, "Erro: Falha ao ler a imagem de entrada\n");
+        exit(1);
+    }
+    
+    KMeansData kd = {
+        .size = pgm->width * pgm->height,
+        .maxValue = pgm->maxValue,
+        .data = pgm->data
+    };
+
+    if (!applyKMeans(&kd, k, maxIterations)) {
+        fprintf(stderr, "Erro: Falha ao aplicar o algoritmo k-means na imagem\n");
         freePGM(pgm);
         exit(1);
     }
 
-    if (!writePGM(pgm, "assets/smurf_out.pgm")) {
+    if (!writePGM(pgm, imgOutPath)) {
         fprintf(stderr, "Erro: Falha ao salvar o arquivo\n");
         freePGM(pgm);
         exit(1);
     }
 
-    puts("Sucesso!");
+    puts("A imagem foi processada e salva com sucesso!");
     freePGM(pgm);
     return 0;
 }
