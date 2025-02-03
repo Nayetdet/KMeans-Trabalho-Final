@@ -8,10 +8,11 @@
 #include "kmeans.h"
 #include "pgm.h"
 
+#define PATH_MAX_SIZE 256
 #define IN_DIR_PATH "datasets"
 #define OUT_DIR_PATH "out"
 
-bool processImage(unsigned char k, unsigned maxIterations, const char *fileName);
+static bool processImage(unsigned char k, unsigned maxIterations, const char *const inPath, const char *const outPath);
 
 int main(int argc, char **argv) {
     srand(time(NULL));
@@ -21,7 +22,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Erro: Use <k:unsigned> <maxIterations:unsigned>\n");
         exit(1);
     }
-
+    
     DIR *dir = opendir(IN_DIR_PATH);
     if (!dir) {
         fprintf(stderr, "Erro: Falha ao ler o diretório informado\n");
@@ -36,16 +37,27 @@ int main(int argc, char **argv) {
             continue;
         }
 
-        if (!processImage(atoi(argv[1]), atoi(argv[2]), entry->d_name)) {
-            closedir(dir);
-            exit(1);
+        char inPath[PATH_MAX_SIZE];
+        if (snprintf(inPath, sizeof(inPath), "%s/%s", IN_DIR_PATH, entry->d_name) >= sizeof(inPath)) {
+            continue;
+        }
+
+        char outPath[PATH_MAX_SIZE];
+        if (snprintf(outPath, sizeof(outPath), "%s/out_%s", OUT_DIR_PATH, entry->d_name) >= sizeof(outPath)) {
+            continue;
+        }
+
+        if (!processImage(atoi(argv[1]), atoi(argv[2]), inPath, outPath)) {
+            continue;
         }
 
         numImgs++;
     }
 
     closedir(dir);
+
     double time = (double)(clock() - begin) / CLOCKS_PER_SEC;
+    printf("\nQuantidade de imagens: %u\n", numImgs);
     printf("Tempo total: %lf segundos\n", time);
 
     if (numImgs > 0) {
@@ -57,9 +69,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-bool processImage(unsigned char k, unsigned maxIterations, const char *fileName) {
-    char inPath[256];
-    snprintf(inPath, sizeof(inPath), "%s/%s", IN_DIR_PATH, fileName);
+static bool processImage(unsigned char k, unsigned maxIterations, const char *const inPath, const char *const outPath) {
     printf("Processando: %s\n", inPath);
 
     PGM *pgm = readPGM(inPath);
@@ -80,8 +90,6 @@ bool processImage(unsigned char k, unsigned maxIterations, const char *fileName)
         return false;
     }
 
-    char outPath[256];
-    snprintf(outPath, sizeof(outPath), "%s/out_%s", OUT_DIR_PATH, fileName);
     if (!writePGM(pgm, outPath)) {
         fprintf(stderr, "Erro: Falha ao salvar o arquivo\n");
         freePGM(pgm);
