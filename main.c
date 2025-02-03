@@ -4,60 +4,39 @@
 #include <string.h>
 #include <dirent.h>
 #include <time.h>
-#include <limits.h>
 
 #include "kmeans.h"
 #include "pgm.h"
 
-bool processImage(const char *path, unsigned k, unsigned maxIterations);
-unsigned processDirectory(const char *dirPath, unsigned k, unsigned maxIterations);
+#define IN_DIR_PATH "datasets"
+#define OUT_DIR_PATH "out"
+
+bool processImage(unsigned char k, unsigned maxIterations, const char *fileName);
 
 int main(int argc, char **argv) {
     srand(time(NULL));
-    if (argc != 4) {
-        fprintf(stderr, "Erro: Use <k:unsigned> <maxIterations:unsigned> <datasetsDirPath:string>\n");
+    clock_t begin = clock();
+
+    if (argc != 3) {
+        fprintf(stderr, "Erro: Use <k:unsigned> <maxIterations:unsigned>\n");
         exit(1);
     }
 
-    unsigned k = atoi(argv[1]);
-    unsigned maxIterations = atoi(argv[2]);
-    const char *dirPath = argv[3];
-
-    clock_t begin = clock();
-    unsigned numImgs = processDirectory(dirPath, k, maxIterations);
-    clock_t end = clock();
-
-    double totalTime = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("Tempo Total: %lf segundos\n", totalTime);
-
-    if (numImgs > 0) {
-        printf("Tempo por imagem: %lf segundos\n", totalTime / numImgs);
-    } else {
-        puts("Nenhuma imagem foi processada");
-    }
-
-    return 0;
-}
-
-unsigned processDirectory(const char *dirPath, unsigned k, unsigned maxIterations) {
-    DIR *dir = opendir(dirPath);
+    DIR *dir = opendir(IN_DIR_PATH);
     if (!dir) {
         fprintf(stderr, "Erro: Falha ao ler o diretório informado\n");
         exit(1);
     }
 
-    struct dirent *entry;
     unsigned numImgs = 0;
+    struct dirent *entry;
 
     while ((entry = readdir(dir))) {
         if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
             continue;
         }
 
-        char imgPath[PATH_MAX];
-        snprintf(imgPath, sizeof(imgPath), "%s/%s", dirPath, entry->d_name);
-
-        if (!processImage(imgPath, k, maxIterations)) {
+        if (!processImage(atoi(argv[1]), atoi(argv[2]), entry->d_name)) {
             closedir(dir);
             exit(1);
         }
@@ -66,13 +45,24 @@ unsigned processDirectory(const char *dirPath, unsigned k, unsigned maxIteration
     }
 
     closedir(dir);
-    return numImgs;
+    double time = (double)(clock() - begin) / CLOCKS_PER_SEC;
+    printf("Tempo total: %lf segundos\n", time);
+
+    if (numImgs > 0) {
+        printf("Tempo por imagem: %lf segundos\n", time / numImgs);
+    } else {
+        puts("Nenhuma imagem foi processada");
+    }
+
+    return 0;
 }
 
-bool processImage(const char *imgPath, unsigned k, unsigned maxIterations) {
-    printf("Processando: %s\n", imgPath);
+bool processImage(unsigned char k, unsigned maxIterations, const char *fileName) {
+    char inPath[256];
+    snprintf(inPath, sizeof(inPath), "%s/%s", IN_DIR_PATH, fileName);
+    printf("Processando: %s\n", inPath);
 
-    PGM *pgm = readPGM(imgPath);
+    PGM *pgm = readPGM(inPath);
     if (!pgm) {
         fprintf(stderr, "Erro: Falha ao ler a imagem de entrada\n");
         return false;
@@ -86,6 +76,14 @@ bool processImage(const char *imgPath, unsigned k, unsigned maxIterations) {
 
     if (!applyKMeans(&kd, k, maxIterations)) {
         fprintf(stderr, "Erro: Falha ao aplicar o algoritmo k-means na imagem\n");
+        freePGM(pgm);
+        return false;
+    }
+
+    char outPath[256];
+    snprintf(outPath, sizeof(outPath), "%s/out_%s", OUT_DIR_PATH, fileName);
+    if (!writePGM(pgm, outPath)) {
+        fprintf(stderr, "Erro: Falha ao salvar o arquivo\n");
         freePGM(pgm);
         return false;
     }
