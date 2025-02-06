@@ -4,6 +4,7 @@
 
 #include "pgm.h"
 #include "metrics.h"
+#include "histogram.h"
 
 #define PATH_MAX_SIZE 256
 
@@ -27,6 +28,8 @@ int main(int argc, char **argv) {
     }
 
     struct dirent *entry;
+    unsigned char histogram[HISTOGRAM_SIZE] = {0};
+
     while ((entry = readdir(inDir))) {
         char inPath[PATH_MAX_SIZE];
         if (snprintf(inPath, sizeof(inPath), "%s/%s", argv[1], entry->d_name) >= sizeof(inPath)) {
@@ -51,7 +54,8 @@ int main(int argc, char **argv) {
 
         double dice = calculateDice(inPgm->data, outPgm->data, outPgm->width * outPgm->height);
         printf("Comparando \"%s\" com \"%s\" | Coeficiente Dice: %.2lf\n", inPath, outPath, dice);
-        
+        // computeHistogram(outPgm->data, histogram, outPgm->width * outPgm->height);
+
         free(inPgm);
         free(outPgm);
     }
