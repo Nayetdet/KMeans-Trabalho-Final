@@ -9,8 +9,6 @@
 #include "pgm.h"
 
 #define PATH_MAX_SIZE 256
-#define IN_DIR_PATH "datasets"
-#define OUT_DIR_PATH "out"
 
 static bool processImage(unsigned char k, unsigned maxIterations, const char *const inPath, const char *const outPath);
 
@@ -18,43 +16,45 @@ int main(int argc, char **argv) {
     srand(time(NULL));
     clock_t begin = clock();
 
-    if (argc != 3) {
-        fprintf(stderr, "Erro: Use <k:unsigned> <maxIterations:unsigned>\n");
+    if (argc != 5) {
+        fprintf(stderr, "Erro: Use <inDirPath:string> <outDirPath:string> <k:unsigned> <maxIterations:unsigned>\n");
         exit(1);
     }
     
-    DIR *dir = opendir(IN_DIR_PATH);
-    if (!dir) {
-        fprintf(stderr, "Erro: Falha ao ler o diretório informado\n");
+    DIR *inDir = opendir(argv[1]);
+    if (!inDir) {
+        fprintf(stderr, "Erro: Falha ao ler o diretório de entrada\n");
+        exit(1);
+    }
+
+    DIR *outDir = opendir(argv[2]);
+    if (!outDir) {
+        closedir(inDir);
+        fprintf(stderr, "Erro: Falha ao ler o diretório de saída\n");
         exit(1);
     }
 
     unsigned numImgs = 0;
     struct dirent *entry;
 
-    while ((entry = readdir(dir))) {
-        if (!strcmp(entry->d_name, ".") || !strcmp(entry->d_name, "..")) {
-            continue;
-        }
-
+    while ((entry = readdir(inDir))) {
         char inPath[PATH_MAX_SIZE];
-        if (snprintf(inPath, sizeof(inPath), "%s/%s", IN_DIR_PATH, entry->d_name) >= sizeof(inPath)) {
+        if (snprintf(inPath, sizeof(inPath), "%s/%s", argv[1], entry->d_name) >= sizeof(inPath)) {
             continue;
         }
 
         char outPath[PATH_MAX_SIZE];
-        if (snprintf(outPath, sizeof(outPath), "%s/out_%s", OUT_DIR_PATH, entry->d_name) >= sizeof(outPath)) {
+        if (snprintf(outPath, sizeof(outPath), "%s/out_%s", argv[2], entry->d_name) >= sizeof(outPath)) {
             continue;
         }
 
-        if (!processImage(atoi(argv[1]), atoi(argv[2]), inPath, outPath)) {
-            continue;
+        if (processImage(atoi(argv[3]), atoi(argv[4]), inPath, outPath)) {
+            numImgs++;
         }
-
-        numImgs++;
     }
 
-    closedir(dir);
+    closedir(inDir);
+    closedir(outDir);
 
     double time = (double)(clock() - begin) / CLOCKS_PER_SEC;
     printf("\nQuantidade de imagens: %u\n", numImgs);
