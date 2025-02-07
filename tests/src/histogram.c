@@ -1,6 +1,6 @@
 #include <stdio.h>
+#include <stdbool.h>
 
-#include "metrics.h"
 #include "histogram.h"
 
 void computeHistogram(const unsigned char *const data, unsigned char histogram[HISTOGRAM_SIZE], unsigned long long size) {
@@ -9,27 +9,18 @@ void computeHistogram(const unsigned char *const data, unsigned char histogram[H
     }
 }
 
-void salvarHistograma(const char *filename, unsigned char histogram[HISTOGRAM_SIZE]){
-
-    char filepath[256];
-    snprintf(filepath, sizeof(filepath), "%s/%s", OUTPUT_PATH, filename);
-
-
-    FILE *file = fopen(filename, "w");
-    if (!file)
-    {
-        perror("ERRO: Erro ao abrir o arquivo para escrita");
-        return;
+bool saveHistogram(const char *const outPath, unsigned char histogram[HISTOGRAM_SIZE]) {
+    FILE *file = fopen(outPath, "w");
+    if (!file) {
+        fprintf(stderr, "Erro: Falha ao abrir o arquivo para escrita\n");
+        return false;
     }
 
-    fprintf(file, "[ ");
-    for (unsigned i = 0; i < HISTOGRAM_SIZE; i++)
-    {
-        fprintf(file, " %u, ", histogram[i]);      
+    for (unsigned i = 0; i < HISTOGRAM_SIZE; i++) {
+        fprintf(file, "%u\n", histogram[i]);      
     }
-    fprintf(file, " ]");
     
-
+    printf("Histograma salvo em: %s\n", outPath);
     fclose(file);
-    printf("Histograma salvo em: %s\n", filepath);
+    return true;
 }
