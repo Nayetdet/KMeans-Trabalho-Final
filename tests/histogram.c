@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
     }
 
     struct dirent *entry;
-    unsigned char histogram[HISTOGRAM_SIZE] = {0};
+    unsigned char histogram[HISTOGRAM_SIZE];
 
     while ((entry = readdir(inDir))) {
         char inPath[FILENAME_MAX];
