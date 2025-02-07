@@ -8,8 +8,6 @@
 #include "kmeans.h"
 #include "pgm.h"
 
-#define PATH_MAX_SIZE 256
-
 static bool processImage(unsigned char k, unsigned maxIterations, const char *const inPath, const char *const outPath);
 
 int main(int argc, char **argv) {
@@ -38,12 +36,12 @@ int main(int argc, char **argv) {
     struct dirent *entry;
 
     while ((entry = readdir(inDir))) {
-        char inPath[PATH_MAX_SIZE];
+        char inPath[FILENAME_MAX];
         if (snprintf(inPath, sizeof(inPath), "%s/%s", argv[1], entry->d_name) >= sizeof(inPath)) {
             continue;
         }
 
-        char outPath[PATH_MAX_SIZE];
+        char outPath[FILENAME_MAX];
         if (snprintf(outPath, sizeof(outPath), "%s/out_%s", argv[2], entry->d_name) >= sizeof(outPath)) {
             continue;
         }
