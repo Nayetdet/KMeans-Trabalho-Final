@@ -4,6 +4,10 @@
 #include "histogram.h"
 
 void computeHistogram(const unsigned char *const data, unsigned char histogram[HISTOGRAM_SIZE], unsigned long long size) {
+    for (unsigned i = 0; i < HISTOGRAM_SIZE; i++) {
+        histogram[i] = 0;
+    }
+    
     for (unsigned long long i = 0; i < size; i++) {
         histogram[data[i]]++;
     }
@@ -17,7 +21,7 @@ bool saveHistogram(const char *const outPath, unsigned char histogram[HISTOGRAM_
     }
 
     for (unsigned i = 0; i < HISTOGRAM_SIZE; i++) {
-        fprintf(file, "%u\n", histogram[i]);      
+        fprintf(file, "%u ", histogram[i]);      
     }
     
     printf("Histograma salvo em: %s\n", outPath);
