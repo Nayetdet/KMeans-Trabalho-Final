@@ -54,7 +54,9 @@ int main(int argc, char **argv) {
 
         double dice = calculateDice(inPgm->data, outPgm->data, outPgm->width * outPgm->height);
         printf("Comparando \"%s\" com \"%s\" | Coeficiente Dice: %.2lf\n", inPath, outPath, dice);
-        // computeHistogram(outPgm->data, histogram, outPgm->width * outPgm->height);
+
+        computeHistogram(outPgm->data, histogram, outPgm->width * outPgm->height);
+        salvarHistograma(entry->d_name, histogram);
 
         free(inPgm);
         free(outPgm);
