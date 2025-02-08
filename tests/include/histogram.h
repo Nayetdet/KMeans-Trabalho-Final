@@ -2,10 +2,9 @@
 #define HISTOGRAM_H
 
 #include <stdbool.h>
+#include <limits.h>
 
-#define HISTOGRAM_SIZE 256
-
-void computeHistogram(const unsigned char *const data, unsigned char histogram[HISTOGRAM_SIZE], unsigned long long size);
-bool saveHistogram(const char *const outPath, unsigned char histogram[HISTOGRAM_SIZE]);
+void computeHistogram(unsigned char histogram[UCHAR_MAX], const unsigned char *const data, unsigned size);
+bool writeHistogram(unsigned char histogram[UCHAR_MAX], const char *const outPath);
 
 #endif

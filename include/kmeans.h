@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 typedef struct {
-    unsigned long long size;
+    unsigned size;
     unsigned char maxValue;
     unsigned char *data;
 } KMeansData;

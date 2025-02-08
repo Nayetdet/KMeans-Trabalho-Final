@@ -4,65 +4,73 @@
 #include <dirent.h>
 
 #include "pgm.h"
-#include "metrics.h"
+#include "dice.h"
 
 int main(int argc, char **argv) {
-    if (argc != 3) {
-        fprintf(stderr, "Erro: Use <inDirPath:string> <outDirPath:string>\n");
+    if (argc != 5) {
+        fprintf(stderr, "Erro: Use <outDirPath:string> <targetDirPath:string> <binarizedOutDirPath:string> <binarizedTargetDirPath:string>\n");
         exit(1);
     }
     
-    DIR *inDir = opendir(argv[1]);
-    if (!inDir) {
-        fprintf(stderr, "Erro: Falha ao ler o diretório de entrada\n");
+    DIR *outDirPath = opendir(argv[1]);
+    DIR *targetDirPath = opendir(argv[2]);
+    DIR *binarizedOutDirPath = opendir(argv[3]);
+    DIR *binarizedTargetDirPath = opendir(argv[4]);
+    if (!outDirPath || !targetDirPath || !binarizedOutDirPath || !binarizedTargetDirPath) {
+        if (outDirPath) closedir(outDirPath);
+        if (targetDirPath) closedir(targetDirPath);
+        if (binarizedOutDirPath) closedir(binarizedOutDirPath);
+        if (binarizedTargetDirPath) closedir(binarizedTargetDirPath);
+        fprintf(stderr, "Erro: Falha ao ler os diretórios informados\n");
         exit(1);
     }
-
-    DIR *outDir = opendir(argv[2]);
-    if (!outDir) {
-        fprintf(stderr, "Erro: Falha ao ler o diretório de saída\n");
-        closedir(inDir);
-        exit(1);
-    }
-
+    
+    double diceMean = 0;
+    unsigned imgCount = 0;
+    
     struct dirent *entry;
-    double diceMean = 0.0;
-    unsigned count = 0;
-
-    while ((entry = readdir(inDir))) {
-        char inPath[FILENAME_MAX];
-        if (snprintf(inPath, sizeof(inPath), "%s/%s", argv[1], entry->d_name) >= sizeof(inPath)) {
-            continue;
-        }
-
+    while ((entry = readdir(outDirPath))) {
         char outPath[FILENAME_MAX];
-        if (snprintf(outPath, sizeof(outPath), "%s/out_%s", argv[2], entry->d_name) >= sizeof(outPath)) {
-            continue;
-        }
+        char targetPath[FILENAME_MAX];
+        char binarizedOutPath[FILENAME_MAX];
+        char binarizedTargetPath[FILENAME_MAX];
 
-        PGM *inPgm = readPGM(inPath);
+        snprintf(outPath, sizeof(outPath), "%s/%s", argv[1], entry->d_name);
+        snprintf(targetPath, sizeof(targetPath), "%s/%s", argv[2], entry->d_name);
+        snprintf(binarizedOutPath, sizeof(binarizedOutPath), "%s/%s", argv[3], entry->d_name);
+        snprintf(binarizedTargetPath, sizeof(binarizedTargetPath), "%s/%s", argv[4], entry->d_name);
+
         PGM *outPgm = readPGM(outPath);
-        if (!inPgm || !outPgm) {
-            free(inPgm);
-            free(outPgm);
+        PGM *targetPgm = readPGM(targetPath);
+        if (!outPgm || !targetPgm) {
+            freePGM(outPgm);
+            freePGM(targetPgm);
             continue;
         }
-
-        double dice = calculateDice(inPgm->data, outPgm->data, outPgm->width * outPgm->height);
-        printf("Comparando %s com %s | Coeficiente Dice: %.2lf\n", inPath, outPath, dice);
-
+        
+        double dice = getDiceByBinarizingData(outPgm->data, targetPgm->data, targetPgm->width * targetPgm->height);
         diceMean += dice;
-        count++;
+        imgCount++;
+        
+        printf("Comparando %s com %s | Coeficiente Dice: %.2lf\n", outPath, targetPath, dice);
+        writePGM(outPgm, binarizedOutPath);
+        writePGM(targetPgm, binarizedTargetPath);
 
-        free(inPgm);
-        free(outPgm);
+        freePGM(outPgm);
+        freePGM(targetPgm);
     }
 
-    diceMean /= count;
-    printf("\nMédia dos coeficientes Dice: %.2lf\n", diceMean);
+    if (imgCount) {
+        diceMean /= imgCount;
+        printf("\nMédia dos coeficientes Dice: %.2lf\n", diceMean);
+    } else {
+        puts("Nenhuma imagem foi processada");
+    }
 
-    closedir(inDir);
-    closedir(outDir);
+    closedir(outDirPath);
+    closedir(targetDirPath);
+    closedir(binarizedOutDirPath);
+    closedir(binarizedTargetDirPath);
 
     return 0;
 }

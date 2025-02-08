@@ -8,58 +8,49 @@
 #include "kmeans.h"
 #include "pgm.h"
 
-static bool processImage(unsigned char k, unsigned maxIterations, const char *const inPath, const char *const outPath);
+static bool processImage(unsigned char k, unsigned maxIterations, const char *const initialPath, const char *const outPath);
 
 int main(int argc, char **argv) {
     srand(time(NULL));
-    clock_t begin = clock();
-
     if (argc != 5) {
-        fprintf(stderr, "Erro: Use <inDirPath:string> <outDirPath:string> <k:unsigned> <maxIterations:unsigned>\n");
+        fprintf(stderr, "Erro: Use <initialDirPath:string> <outDirPath:string> <k:unsigned> <maxIterations:unsigned>\n");
         exit(1);
     }
     
-    DIR *inDir = opendir(argv[1]);
-    if (!inDir) {
-        fprintf(stderr, "Erro: Falha ao ler o diretório de entrada\n");
-        exit(1);
-    }
-
+    DIR *initialDir = opendir(argv[1]);
     DIR *outDir = opendir(argv[2]);
-    if (!outDir) {
-        closedir(inDir);
-        fprintf(stderr, "Erro: Falha ao ler o diretório de saída\n");
+    if (!initialDir || !outDir) {
+        if (initialDir) closedir(initialDir);
+        if (outDir) closedir(outDir);
+        fprintf(stderr, "Erro: Falha ao ler os diretórios informados\n");
         exit(1);
     }
+    
+    clock_t begin = clock();
+    unsigned imgCount = 0;
 
-    unsigned numImgs = 0;
     struct dirent *entry;
-
-    while ((entry = readdir(inDir))) {
-        char inPath[FILENAME_MAX];
-        if (snprintf(inPath, sizeof(inPath), "%s/%s", argv[1], entry->d_name) >= sizeof(inPath)) {
-            continue;
-        }
-
+    while ((entry = readdir(initialDir))) {
+        char initialPath[FILENAME_MAX];
         char outPath[FILENAME_MAX];
-        if (snprintf(outPath, sizeof(outPath), "%s/out_%s", argv[2], entry->d_name) >= sizeof(outPath)) {
-            continue;
-        }
 
-        if (processImage(atoi(argv[3]), atoi(argv[4]), inPath, outPath)) {
-            numImgs++;
+        snprintf(initialPath, sizeof(initialPath), "%s/%s", argv[1], entry->d_name);
+        snprintf(outPath, sizeof(outPath), "%s/%s", argv[2], entry->d_name);
+
+        if (processImage(atoi(argv[3]), atoi(argv[4]), initialPath, outPath)) {
+            imgCount++;
         }
     }
 
-    closedir(inDir);
+    closedir(initialDir);
     closedir(outDir);
 
     double time = (double)(clock() - begin) / CLOCKS_PER_SEC;
-    printf("\nQuantidade de imagens: %u\n", numImgs);
+    printf("\nQuantidade de imagens: %u\n", imgCount);
     printf("Tempo total: %lf segundos\n", time);
 
-    if (numImgs > 0) {
-        printf("Tempo por imagem: %lf segundos\n", time / numImgs);
+    if (imgCount > 0) {
+        printf("Tempo por imagem: %lf segundos\n", time / imgCount);
     } else {
         puts("Nenhuma imagem foi processada");
     }
@@ -67,10 +58,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-static bool processImage(unsigned char k, unsigned maxIterations, const char *const inPath, const char *const outPath) {
-    printf("Processando: %s\n", inPath);
+static bool processImage(unsigned char k, unsigned maxIterations, const char *const initialPath, const char *const outPath) {
+    printf("Processando: %s\n", initialPath);
 
-    PGM *pgm = readPGM(inPath);
+    PGM *pgm = readPGM(initialPath);
     if (!pgm) {
         fprintf(stderr, "Erro: Falha ao ler a imagem de entrada\n");
         return false;

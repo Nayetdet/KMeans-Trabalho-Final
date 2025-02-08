@@ -2,64 +2,54 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <limits.h>
 
 #include "pgm.h"
 #include "histogram.h"
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr, "Erro: Use <inDirPath:string> <outDirPath:string>\n");
+        fprintf(stderr, "Erro: Use <initialDirPath:string> <histogramsDirPath:string>\n");
         exit(1);
     }
     
-    DIR *inDir = opendir(argv[1]);
-    if (!inDir) {
-        fprintf(stderr, "Erro: Falha ao ler o diretório de entrada\n");
+    DIR *initialDir = opendir(argv[1]);
+    DIR *histogramsDir = opendir(argv[2]);
+    if (!initialDir || !histogramsDir) {
+        if (initialDir) closedir(initialDir);
+        if (histogramsDir) closedir(histogramsDir);
+        fprintf(stderr, "Erro: Falha ao ler os diretórios informados\n");
         exit(1);
     }
 
-    DIR *outDir = opendir(argv[2]);
-    if (!outDir) {
-        fprintf(stderr, "Erro: Falha ao ler o diretório de saída\n");
-        closedir(inDir);
-        exit(1);
-    }
-
+    unsigned char histogram[UCHAR_MAX];
     struct dirent *entry;
-    unsigned char histogram[HISTOGRAM_SIZE];
+    while ((entry = readdir(initialDir))) {
+        char initialPath[FILENAME_MAX];
+        char histogramsPath[FILENAME_MAX];
+        
+        snprintf(initialPath, sizeof(initialPath), "%s/%s", argv[1], entry->d_name);
+        snprintf(histogramsPath, sizeof(histogramsPath), "%s/%s", argv[2], entry->d_name);
 
-    while ((entry = readdir(inDir))) {
-        char inPath[FILENAME_MAX];
-        if (snprintf(inPath, sizeof(inPath), "%s/%s", argv[1], entry->d_name) >= sizeof(inPath)) {
-            continue;
-        }
-
-        char outPath[FILENAME_MAX];
-        if (snprintf(outPath, sizeof(outPath), "%s/%s", argv[2], entry->d_name) >= sizeof(outPath)) {
-            continue;
-        }
-
-        char *ext = strrchr(outPath, '.');
+        char *ext = strrchr(histogramsPath, '.');
         if (ext && !strcmp(ext, ".pgm")) {
             *ext = '\0';
-            unsigned long long outPathLength = strlen(outPath);
-            if (snprintf(outPath + outPathLength, sizeof(outPath) - strlen(outPath), ".txt") >= sizeof(outPath) - outPathLength) {
-                continue;
-            }
+            unsigned long long histogramsPathLength = strlen(histogramsPath);
+            snprintf(histogramsPath + histogramsPathLength, sizeof(histogramsPath) - histogramsPathLength, ".txt");
         }
 
-        PGM *inPgm = readPGM(inPath);
-        if (!inPgm) {
+        PGM *initialPgm = readPGM(initialPath);
+        if (!initialPgm) {
             continue;
         }
 
-        computeHistogram(inPgm->data, histogram, inPgm->width * inPgm->height);
-        saveHistogram(outPath, histogram);
-        free(inPgm);
+        computeHistogram(histogram, initialPgm->data, initialPgm->width * initialPgm->height);
+        writeHistogram(histogram, histogramsPath);
+        freePGM(initialPgm);
     }
 
-    closedir(inDir);
-    closedir(outDir);
+    closedir(initialDir);
+    closedir(histogramsDir);
 
     return 0;
 }
