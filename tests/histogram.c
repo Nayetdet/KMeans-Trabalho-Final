@@ -9,14 +9,14 @@
 
 int main(int argc, char **argv) {
     if (argc != 3) {
-        fprintf(stderr, "Erro: Use <initialDirPath:string> <histogramsDirPath:string>\n");
+        fprintf(stderr, "Erro: Use <srcDirPath:string> <histogramsDirPath:string>\n");
         exit(1);
     }
     
-    DIR *initialDir = opendir(argv[1]);
+    DIR *srcDir = opendir(argv[1]);
     DIR *histogramsDir = opendir(argv[2]);
-    if (!initialDir || !histogramsDir) {
-        if (initialDir) closedir(initialDir);
+    if (!srcDir || !histogramsDir) {
+        if (srcDir) closedir(srcDir);
         if (histogramsDir) closedir(histogramsDir);
         fprintf(stderr, "Erro: Falha ao ler os diretórios informados\n");
         exit(1);
@@ -24,11 +24,11 @@ int main(int argc, char **argv) {
 
     unsigned char histogram[UCHAR_MAX];
     struct dirent *entry;
-    while ((entry = readdir(initialDir))) {
-        char initialPath[FILENAME_MAX];
+    while ((entry = readdir(srcDir))) {
+        char srcPath[FILENAME_MAX];
         char histogramsPath[FILENAME_MAX];
         
-        snprintf(initialPath, sizeof(initialPath), "%s/%s", argv[1], entry->d_name);
+        snprintf(srcPath, sizeof(srcPath), "%s/%s", argv[1], entry->d_name);
         snprintf(histogramsPath, sizeof(histogramsPath), "%s/%s", argv[2], entry->d_name);
 
         char *ext = strrchr(histogramsPath, '.');
@@ -38,17 +38,17 @@ int main(int argc, char **argv) {
             snprintf(histogramsPath + histogramsPathLength, sizeof(histogramsPath) - histogramsPathLength, ".txt");
         }
 
-        PGM *initialPgm = readPGM(initialPath);
-        if (!initialPgm) {
+        PGM *srcPgm = readPGM(srcPath);
+        if (!srcPgm) {
             continue;
         }
 
-        computeHistogram(histogram, initialPgm->data, initialPgm->width * initialPgm->height);
+        computeHistogram(histogram, srcPgm->data, srcPgm->width * srcPgm->height);
         writeHistogram(histogram, histogramsPath);
-        freePGM(initialPgm);
+        freePGM(srcPgm);
     }
 
-    closedir(initialDir);
+    closedir(srcDir);
     closedir(histogramsDir);
 
     return 0;
