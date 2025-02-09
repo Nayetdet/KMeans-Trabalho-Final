@@ -4,7 +4,7 @@
 #include <dirent.h>
 
 #include "pgm.h"
-#include "dice.h"
+#include "metrics.h"
 
 int main(int argc, char **argv) {
     if (argc != 5) {

@@ -13,7 +13,7 @@ static bool processImage(unsigned char k, unsigned maxIterations, const char *co
 int main(int argc, char **argv) {
     srand(time(NULL));
     if (argc != 5) {
-        fprintf(stderr, "Erro: Use <initialDirPath:string> <outDirPath:string> <k:unsigned> <maxIterations:unsigned>\n");
+        fprintf(stderr, "Erro: Use <initialDirPath:string> <outDirPath:string> <k:unsigned char> <maxIterations:unsigned>\n");
         exit(1);
     }
     

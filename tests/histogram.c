@@ -31,13 +31,13 @@ int main(int argc, char **argv) {
         snprintf(srcPath, sizeof(srcPath), "%s/%s", argv[1], entry->d_name);
         snprintf(histogramsPath, sizeof(histogramsPath), "%s/%s", argv[2], entry->d_name);
 
-        char *ext = strrchr(histogramsPath, '.');
-        if (ext && !strcmp(ext, ".pgm")) {
-            *ext = '\0';
+        char *fileExtension = strrchr(histogramsPath, '.');
+        if (fileExtension && !strcmp(fileExtension, ".pgm")) {
+            *fileExtension = '\0';
             unsigned long long histogramsPathLength = strlen(histogramsPath);
             snprintf(histogramsPath + histogramsPathLength, sizeof(histogramsPath) - histogramsPathLength, ".txt");
         }
-
+        
         PGM *srcPgm = readPGM(srcPath);
         if (!srcPgm) {
             continue;

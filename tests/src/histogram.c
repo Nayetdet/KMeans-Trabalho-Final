@@ -14,17 +14,17 @@ void computeHistogram(unsigned char histogram[UCHAR_MAX], const unsigned char *c
 }
 
 bool writeHistogram(unsigned char histogram[UCHAR_MAX], const char *const histogramsPath) {
-    FILE *file = fopen(histogramsPath, "w");
-    if (!file) {
+    FILE *fp = fopen(histogramsPath, "w");
+    if (!fp) {
         fprintf(stderr, "Erro: Falha ao abrir o arquivo para escrita\n");
         return false;
     }
 
     for (unsigned i = 0; i < UCHAR_MAX; i++) {
-        fprintf(file, "%u ", histogram[i]);      
+        fprintf(fp, "%u ", histogram[i]);      
     }
     
     printf("Histograma salvo em: %s\n", histogramsPath);
-    fclose(file);
+    fclose(fp);
     return true;
 }
