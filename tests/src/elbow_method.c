@@ -1,56 +1,51 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #include "pgm.h"
 #include "kmeans.h"
-#include "sse.h"
+#include "metrics.h"
 #include "elbow_method.h"
 
-void executeElbowMethod(const char *srcPath, unsigned maxK, unsigned long long *sseResults) {
-    PGM *srcPgm = readPGM(srcPath);
-    if (!srcPgm) {
-        fprintf(stderr, "Erro ao carregar a imagem %s\n", srcPath);
+void calculateElbowMethod(unsigned long long *sses, const char *const initialPgmFilePath, unsigned char kMax) {
+    PGM *initialPgm = readPGM(initialPgmFilePath);
+    if (!initialPgm) {
+        fprintf(stderr, "Erro: Falha ao ler a imagem de entrada\n");
         return;
     }
 
     KMeansData kd = {
-        .size = srcPgm->width * srcPgm->height,
-        .maxValue = srcPgm->maxValue,
-        .data = srcPgm->data
+        .size = initialPgm->width * initialPgm->height,
+        .maxValue = initialPgm->maxValue,
+        .data = initialPgm->data
     };
 
-    for (unsigned k = 1; k <= maxK; k++) {
-        KMeans *km = getKMeans(&kd, k, MAX_ITERATIONS);
+    for (unsigned char k = 1; k <= kMax; k++) {
+        KMeans *km = getKMeans(&kd, k, UCHAR_MAX);
         if (!km) {
-            fprintf(stderr, "Erro ao calcular KMeans para k = %u\n", k);
-            freePGM(srcPgm);
+            fprintf(stderr, "Erro: Falha ao aplicar o algoritmo k-means na imagem com k = %hhu\n", k);
+            freePGM(initialPgm);
             return;
         }
 
-        sseResults[k - 1] = calculateSSE(km->clusters, kd.data, km->centroids, kd.size);
-
-        freeKMeans(km);
+        sses[k - 1] = getSSE(kd.data, km->clusters, km->centroids, kd.size);
     }
 
-    freePGM(srcPgm);
+    freePGM(initialPgm);
 }
 
-bool writeElbowMethod (const char *srcPath, unsigned long long *sseResults, unsigned maxK) {
-    char elbowResultsPath[FILENAME_MAX];
-    snprintf(elbowResultsPath, sizeof(elbowResultsPath), "%s_sse.txt", srcPath);
-
-    FILE *sseFile = fopen(elbowResultsPath, "w");
-    if (!sseFile) {
-        fprintf(stderr, "Erro ao criar arquivo de resultados SSE\n");
+bool writeElbowMethod(const unsigned long long *const sses, const char *const elbowPath, unsigned char kMax) {
+    FILE *fp = fopen(elbowPath, "w");
+    if (!fp) {
+        fprintf(stderr, "Erro: Falha ao abrir o arquivo para escrita\n");
         exit(1);
     }
 
-    for (unsigned k = 1; k <= maxK; k++) {
-        fprintf(sseFile, "%u %llu\n", k, sseResults[k - 1]);
+    for (unsigned char k = 1; k <= kMax; k++) {
+        fprintf(fp, "%u %llu\n", k, sses[k - 1]);
     }
 
-    fclose(sseFile);
+    fclose(fp);
     return true;
 }
-

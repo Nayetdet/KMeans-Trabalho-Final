@@ -2,9 +2,8 @@
 #define ELBOW_METHOD_H
 
 #include <stdbool.h>
-#define MAX_ITERATIONS 256
 
-void executeElbowMethod(const char *srcPath, unsigned maxK, unsigned long long *sseResults);
-bool writeElbowMethod (const char *srcPath, unsigned long long *sseResults, unsigned maxK);
+void calculateElbowMethod(unsigned long long *sses, const char *const initialPgmFilePath, unsigned char kMax);
+bool writeElbowMethod (const unsigned long long *const sses, const char *const elbowPath, unsigned char kMax);
 
 #endif
