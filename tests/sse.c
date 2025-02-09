@@ -2,10 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <time.h>
 
 #include "sse.h"
 
 int main(int argc, char **argv) {
+    srand(time(NULL));
     if (argc != 5) {
         fprintf(stderr, "Erro: Use <initialDirPath:string> <sseDirPath:string> <maxK:unsigned char> <maxIterations:unsigned>\n");
         exit(1);
