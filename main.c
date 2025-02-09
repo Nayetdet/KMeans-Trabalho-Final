@@ -8,7 +8,7 @@
 #include "kmeans.h"
 #include "pgm.h"
 
-static bool processImage(unsigned char k, unsigned maxIterations, const char *const initialPath, const char *const outPath);
+static bool processImage(const char *const initialPath, const char *const outPath, unsigned char k, unsigned maxIterations);
 
 int main(int argc, char **argv) {
     srand(time(NULL));
@@ -17,6 +17,9 @@ int main(int argc, char **argv) {
         exit(1);
     }
     
+    unsigned char k = (unsigned char)atoll(argv[3]);
+    unsigned maxIterations = (unsigned)atoll(argv[4]);
+
     DIR *initialDir = opendir(argv[1]);
     DIR *outDir = opendir(argv[2]);
     if (!initialDir || !outDir) {
@@ -37,7 +40,7 @@ int main(int argc, char **argv) {
         snprintf(initialPath, sizeof(initialPath), "%s/%s", argv[1], entry->d_name);
         snprintf(outPath, sizeof(outPath), "%s/%s", argv[2], entry->d_name);
 
-        if (processImage(atoi(argv[3]), atoi(argv[4]), initialPath, outPath)) {
+        if (processImage(initialPath, outPath, k, maxIterations)) {
             imgCount++;
         }
     }
@@ -58,7 +61,7 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-static bool processImage(unsigned char k, unsigned maxIterations, const char *const initialPath, const char *const outPath) {
+static bool processImage(const char *const initialPath, const char *const outPath, unsigned char k, unsigned maxIterations) {
     printf("Processando: %s\n", initialPath);
 
     PGM *pgm = readPGM(initialPath);

@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include <limits.h>
 
 #include "pgm.h"
 #include "histogram.h"

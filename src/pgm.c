@@ -5,7 +5,7 @@
 
 #include "pgm.h"
 
-static void *cleanupOnError(FILE *fp, PGM *pgm);
+static void *cleanupPGMOnError(FILE *fp, PGM *pgm);
 
 PGM *readPGM(const char *const path) {
     FILE *fp = fopen(path, "rb");
@@ -16,7 +16,7 @@ PGM *readPGM(const char *const path) {
     char format[3];
     PGM *pgm = (PGM *)malloc(sizeof(PGM));
     if (!pgm || fscanf(fp, "%2c\n", format) != 1 || strcmp(format, "P5")) {
-        return cleanupOnError(fp, pgm);
+        return cleanupPGMOnError(fp, pgm);
     }
 
     char ch;
@@ -26,17 +26,17 @@ PGM *readPGM(const char *const path) {
     
     ungetc(ch, fp);
     if (fscanf(fp, "%u %u %hhu", &pgm->width, &pgm->height, &pgm->maxValue) != 3) {
-        return cleanupOnError(fp, pgm);
+        return cleanupPGMOnError(fp, pgm);
     }
 
     fgetc(fp);
     unsigned long long size = pgm->width * pgm->height;
     if (!size || !(pgm->data = (unsigned char *)malloc(size * sizeof(unsigned char)))) {
-        return cleanupOnError(fp, pgm);
+        return cleanupPGMOnError(fp, pgm);
     }
 
     if (fread(pgm->data, sizeof(unsigned char), size, fp) != size) {
-        return cleanupOnError(fp, pgm);
+        return cleanupPGMOnError(fp, pgm);
     }
 
     fclose(fp);
@@ -80,7 +80,7 @@ void freePGM(PGM *pgm) {
     free(pgm);
 }
 
-static void *cleanupOnError(FILE *fp, PGM *pgm) {
+static void *cleanupPGMOnError(FILE *fp, PGM *pgm) {
     if (fp) {
         fclose(fp);
     }

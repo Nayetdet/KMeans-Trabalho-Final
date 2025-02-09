@@ -71,7 +71,7 @@ void freeKMeans(KMeans *km) {
 }
 
 static void initCentroids(KMeans *km, const KMeansData *const kd) {
-    for (unsigned char k = 0; k < km->k; k++) {
+    for (unsigned k = 0; k < km->k; k++) {
         unsigned idx = rand() % kd->size;
         km->centroids[k] = kd->data[idx];
     }
@@ -82,7 +82,7 @@ static void assignClusters(KMeans *km, const KMeansData *const kd) {
         unsigned char cluster = 0;
         int minDistance = kd->maxValue;
 
-        for (unsigned char k = 0; k < km->k; k++) {
+        for (unsigned k = 0; k < km->k; k++) {
             int distance = abs((int)km->centroids[k] - (int)kd->data[i]);
             if (distance < minDistance) {
                 cluster = k;
@@ -96,7 +96,7 @@ static void assignClusters(KMeans *km, const KMeansData *const kd) {
 
 static bool updateCentroids(KMeans *km, const KMeansData *const kd) {
     bool hasUpdated = false;
-    for (unsigned char k = 0; k < km->k; k++) {
+    for (unsigned k = 0; k < km->k; k++) {
         unsigned long long sum = 0;
         unsigned long long count = 0;
         
