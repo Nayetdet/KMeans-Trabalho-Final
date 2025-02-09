@@ -1,10 +1,10 @@
-all: clean main dice histogram sse
+all: main dice histogram sse
 
 main:
 	gcc main.c src/*.c -o main -Iinclude -lm -O3
 
 dice:
-	gcc tests/dice.c src/*.c tests/src/*.c -o dice -Iinclude -Itests/include -O3
+	gcc tests/dice.c src/*.c tests/src/*.c -o dice -Iinclude -Itests/include -lm -O3
 
 histogram:
 	gcc tests/histogram.c src/*.c tests/src/*.c -o histogram -Iinclude -Itests/include -O3

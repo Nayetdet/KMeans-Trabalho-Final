@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
+#include <math.h>
 
 #include "pgm.h"
 #include "dice.h"
@@ -26,6 +27,7 @@ int main(int argc, char **argv) {
     }
     
     double diceMean = 0;
+    double diceVariance = 0;
     unsigned imgCount = 0;
     
     struct dirent *entry;
@@ -50,6 +52,7 @@ int main(int argc, char **argv) {
         
         double dice = getDiceByBinarizingData(outPgm->data, targetPgm->data, targetPgm->width * targetPgm->height);
         diceMean += dice;
+        diceVariance += dice * dice;
         imgCount++;
         
         printf("Comparando %s com %s | Coeficiente Dice: %.2lf\n", outPath, targetPath, dice);
@@ -62,7 +65,9 @@ int main(int argc, char **argv) {
 
     if (imgCount) {
         diceMean /= imgCount;
+        diceVariance = (diceVariance / imgCount) - (diceMean * diceMean);
         printf("\nMédia dos coeficientes Dice: %.2lf\n", diceMean);
+        printf("Desvio padrão dos coeficientes Dice: %.2lf\n", sqrt(diceVariance));
     } else {
         puts("Nenhuma imagem foi processada");
     }
