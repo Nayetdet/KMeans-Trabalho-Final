@@ -24,11 +24,50 @@
 // * Compilador: gcc (MinGW.org GCC-6.3.0-1) 6.3.0         *
 // ∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗∗
 
-#ifndef DICE_H
-#define DICE_H
+#include <limits.h>
+#include <math.h>
 
-#define CELL_NUCLEUS_COLOR 29
+#include "utils.h"
 
-double getDice(const unsigned char *const outData, const unsigned char *const targetData, unsigned size);
+void binarizeData(unsigned char *data, unsigned size, unsigned char value) {
+    for (unsigned i = 0; i < size; i++) {
+        data[i] = (data[i] == value) ? UCHAR_MAX : 0;
+    }
+}
 
-#endif
+unsigned char getLowestValue(const unsigned char *const data, unsigned size) {
+    unsigned char min = UCHAR_MAX;
+    for (unsigned i = 0; i < size; i++) {
+        if (min > data[i]) {
+            min = data[i];
+        }
+    }
+
+    return min;
+}
+
+double getMean(const double *const data, unsigned size) {
+    if (!size) {
+        return -1;
+    }
+
+    double sum = 0;
+    for (unsigned i = 0; i < size; i++) {
+        sum += data[i];
+    }
+
+    return sum / size;
+}
+
+double getStandardDeviation(const double *const data, double mean, unsigned size) {
+    if (!size) {
+        return -1;
+    }
+
+    double variation = 0;
+    for (unsigned i = 0; i < size; i++) {
+        variation += (data[i] - mean) * (data[i] - mean);
+    }
+
+    return sqrt(variation / size);
+}
