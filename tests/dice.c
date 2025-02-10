@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
             continue;
         }
 
-        binarizeData(outPgm->data, outPgm->width * outPgm->height, getLowestValue(outPgm->data, outPgm->width * outPgm->height));
+        binarizeData(outPgm->data, outPgm->width * outPgm->height, getLowestDataValue(outPgm->data, outPgm->width * outPgm->height));
         binarizeData(targetPgm->data, targetPgm->width * targetPgm->height, CELL_NUCLEUS_COLOR);
         
         dices[imgCount] = getDice(outPgm->data, targetPgm->data, targetPgm->width * targetPgm->height);
@@ -112,9 +112,9 @@ int main(int argc, char **argv) {
     }
 
     if (imgCount) {
-        double mean = getMean(dices, imgCount);
+        double mean = getDataMean(dices, imgCount);
         printf("\nMédia dos coeficientes Dice: %.2lf\n", mean);
-        printf("Desvio padrão dos coeficientes Dice: %.2lf\n", getStandardDeviation(dices, mean, imgCount));
+        printf("Desvio padrão dos coeficientes Dice: %.2lf\n", getDataStandardDeviation(dices, mean, imgCount));
     } else {
         puts("Nenhuma imagem foi processada");
     }

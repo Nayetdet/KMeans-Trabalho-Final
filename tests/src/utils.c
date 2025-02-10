@@ -35,7 +35,7 @@ void binarizeData(unsigned char *data, unsigned size, unsigned char value) {
     }
 }
 
-unsigned char getLowestValue(const unsigned char *const data, unsigned size) {
+unsigned char getLowestDataValue(const unsigned char *const data, unsigned size) {
     unsigned char min = UCHAR_MAX;
     for (unsigned i = 0; i < size; i++) {
         if (min > data[i]) {
@@ -46,7 +46,7 @@ unsigned char getLowestValue(const unsigned char *const data, unsigned size) {
     return min;
 }
 
-double getMean(const double *const data, unsigned size) {
+double getDataMean(const double *const data, unsigned size) {
     if (!size) {
         return -1;
     }
@@ -59,15 +59,15 @@ double getMean(const double *const data, unsigned size) {
     return sum / size;
 }
 
-double getStandardDeviation(const double *const data, double mean, unsigned size) {
+double getDataStandardDeviation(const double *const data, double mean, unsigned size) {
     if (!size) {
         return -1;
     }
 
-    double variation = 0;
+    double squareDiffSum = 0;
     for (unsigned i = 0; i < size; i++) {
-        variation += (data[i] - mean) * (data[i] - mean);
+        squareDiffSum += (data[i] - mean) * (data[i] - mean);
     }
 
-    return sqrt(variation / size);
+    return sqrt(squareDiffSum / size);
 }
