@@ -28,14 +28,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <dirent.h>
-#include <math.h>
 
 #include "pgm.h"
 #include "dice.h"
+#include "utils.h"
 
 int main(int argc, char **argv) {
     if (argc != 5) {
         fprintf(stderr, "Erro: Use <outDirPath:string> <targetDirPath:string> <binarizedOutDirPath:string> <binarizedTargetDirPath:string>\n");
+        exit(1);
+    }
+
+    unsigned imgCapacity = 100;
+    double *dices = (double *)malloc(imgCapacity * sizeof(double));
+    if (!dices) {
+        fprintf(stderr, "Erro: Falha ao alocar memória para o programa\n");
         exit(1);
     }
     
@@ -51,13 +58,27 @@ int main(int argc, char **argv) {
         fprintf(stderr, "Erro: Falha ao ler os diretórios informados\n");
         exit(1);
     }
-    
-    double diceMean = 0;
-    double diceVariance = 0;
+
     unsigned imgCount = 0;
-    
+
     struct dirent *entry;
     while ((entry = readdir(outDirPath))) {
+        if (imgCount >= imgCapacity) {
+            imgCapacity += 50;
+            double *tmp = (double *)realloc(dices, imgCapacity * sizeof(double));
+            if (!tmp) {
+                free(dices);
+                closedir(outDirPath);
+                closedir(targetDirPath);
+                closedir(binarizedOutDirPath);
+                closedir(binarizedTargetDirPath);
+                fprintf(stderr, "Erro: Falha ao realocar memória para o programa\n");
+                exit(1);
+            }
+
+            dices = tmp;
+        }
+
         char outPath[FILENAME_MAX];
         char targetPath[FILENAME_MAX];
         char binarizedOutPath[FILENAME_MAX];
@@ -75,29 +96,30 @@ int main(int argc, char **argv) {
             freePGM(targetPgm);
             continue;
         }
+
+        binarizeData(outPgm->data, outPgm->width * outPgm->height, getLowestDataValue(outPgm->data, outPgm->width * outPgm->height));
+        binarizeData(targetPgm->data, targetPgm->width * targetPgm->height, CELL_NUCLEUS_COLOR);
         
-        double dice = getDiceByBinarizingData(outPgm->data, targetPgm->data, targetPgm->width * targetPgm->height);
-        diceMean += dice;
-        diceVariance += dice * dice;
+        dices[imgCount] = getDice(outPgm->data, targetPgm->data, targetPgm->width * targetPgm->height);
+        printf("Comparando %s com %s | Coeficiente Dice: %.2lf\n", outPath, targetPath, dices[imgCount]);
         imgCount++;
         
-        printf("Comparando %s com %s | Coeficiente Dice: %.2lf\n", outPath, targetPath, dice);
         writePGM(outPgm, binarizedOutPath);
         writePGM(targetPgm, binarizedTargetPath);
-
+        
         freePGM(outPgm);
         freePGM(targetPgm);
     }
 
     if (imgCount) {
-        diceMean /= imgCount;
-        diceVariance = (diceVariance / imgCount) - (diceMean * diceMean);
-        printf("\nMédia dos coeficientes Dice: %.2lf\n", diceMean);
-        printf("Desvio padrão dos coeficientes Dice: %.2lf\n", sqrt(diceVariance));
+        double mean = getDataMean(dices, imgCount);
+        printf("\nMédia dos coeficientes Dice: %.2lf\n", mean);
+        printf("Desvio padrão dos coeficientes Dice: %.2lf\n", getDataStandardDeviation(dices, mean, imgCount));
     } else {
         puts("Nenhuma imagem foi processada");
     }
 
+    free(dices);
     closedir(outDirPath);
     closedir(targetDirPath);
     closedir(binarizedOutDirPath);
