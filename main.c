@@ -45,6 +45,10 @@ int main(int argc, char **argv) {
     
     unsigned char k = (unsigned char)atoll(argv[3]);
     unsigned maxIterations = (unsigned)atoll(argv[4]);
+     if (!k || !maxIterations) {
+        fprintf(stderr, "Erro: Os valores de 'k' e de 'maxIterations' não podem ser zero\n");
+        exit(1);
+    }
 
     DIR *initialDir = opendir(argv[1]);
     DIR *outDir = opendir(argv[2]);
